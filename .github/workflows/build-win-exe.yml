@@ -48,9 +48,7 @@ jobs:
           }
           
           cd $workDir
-          pyinstaller --onefile --name update_excel ^
-            --add-data "模版.xlsx;." ^
-            update_excel.py
+          pyinstaller --onefile --name update_excel --add-data "模版.xlsx;." update_excel.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -59,3 +57,4 @@ jobs:
           path: |
             dist/update_excel.exe
             create-xlsx/dist/update_excel.exe
+          if-no-files-found: error
