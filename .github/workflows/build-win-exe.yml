@@ -13,13 +13,41 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Debug - List directory structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          dir
+          echo "Checking for requirements.txt:"
+          if (Test-Path "requirements.txt") { echo "Found requirements.txt in root" }
+          if (Test-Path "create-xlsx/requirements.txt") { echo "Found create-xlsx/requirements.txt" }
+
       - name: Install deps
         run: |
-          pip install -r create-xlsx/requirements.txt pyinstaller
+          # 尝试多个可能的路径
+          if (Test-Path "requirements.txt") {
+            pip install -r requirements.txt pyinstaller
+          } elseif (Test-Path "create-xlsx/requirements.txt") {
+            pip install -r create-xlsx/requirements.txt pyinstaller
+          } else {
+            echo "Error: Could not find requirements.txt"
+            exit 1
+          }
 
       - name: Build exe
         run: |
-          cd create-xlsx
+          # 确定工作目录
+          if (Test-Path "update_excel.py") {
+            $workDir = "."
+          } elseif (Test-Path "create-xlsx/update_excel.py") {
+            $workDir = "create-xlsx"
+          } else {
+            echo "Error: Could not find update_excel.py"
+            exit 1
+          }
+          
+          cd $workDir
           pyinstaller --onefile --name update_excel ^
             --add-data "模版.xlsx;." ^
             update_excel.py
@@ -28,4 +56,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: update_excel_win
-          path: create-xlsx/dist/update_excel.exe
+          path: |
+            dist/update_excel.exe
+            create-xlsx/dist/update_excel.exe
